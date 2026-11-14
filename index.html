@@ -139,6 +139,9 @@ const PREVIEW_SLOTS = ["8:00 AM","8:30 AM","9:00 AM","9:30 AM","10:00 AM","10:30
   "12:00 PM","12:30 PM","1:00 PM","1:30 PM","2:00 PM","2:30 PM","3:00 PM","3:30 PM"]
   .map(function (t) { return { date: "Friday, 11/20/26", time: t, taken: false }; });
 
+// Each family's own link ends in ?family=<code>, e.g. .../conferences/?family=hala
+const FAMILY = (new URLSearchParams(location.search).get("family") || "").trim().toLowerCase();
+
 let slots = [];
 let chosen = null;
 
@@ -185,7 +188,7 @@ function render() {
 
 function load() {
   if (!SCRIPT_URL) { slots = PREVIEW_SLOTS; render(); return; }
-  fetch(SCRIPT_URL)
+  fetch(SCRIPT_URL + (FAMILY ? "?family=" + encodeURIComponent(FAMILY) : ""))
     .then(function (r) { return r.json(); })
     .then(function (data) { slots = data.slots || []; render(); })
     .catch(function () {
@@ -225,7 +228,7 @@ $("form").addEventListener("submit", function (e) {
   fetch(SCRIPT_URL, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify({ date: s.date, time: s.time, child: child, parent: parent, contact: contact })
+    body: JSON.stringify({ date: s.date, time: s.time, child: child, parent: parent, contact: contact, family: FAMILY })
   })
     .then(function (r) { return r.json(); })
     .then(function (data) {
